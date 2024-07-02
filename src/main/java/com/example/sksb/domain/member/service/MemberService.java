@@ -26,7 +26,7 @@ public class MemberService {
     }
 
     public boolean passwordMatches(Member member, String password) {
-        return passwordEncoder.matches(member.getPassword(), password);
+        return passwordEncoder.matches(password, member.getPassword());
     }
 
     @Transactional
