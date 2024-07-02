@@ -37,8 +37,11 @@ public class Member {
 
     private String username;
     private String password;
+    private String refreshToken;
 
     public List<String> getAuthoritiesAsStringList() {
         return List.of("ROLE_MEMBER");
     }
+
+
 }

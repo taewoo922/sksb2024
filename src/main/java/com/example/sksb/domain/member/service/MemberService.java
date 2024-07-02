@@ -41,7 +41,14 @@ public class MemberService {
                 .password(passwordEncoder.encode(password))
                 .build();
 
+        String refreshToken = authTokenService.genRefreshToken(member);
+        member.setRefreshToken(refreshToken);
+
         memberRepository.save(member);
+    }
+
+    public boolean validateToken (String token) {
+        return authTokenService.validateToken(token);
     }
 
     @Getter
@@ -60,7 +67,7 @@ public class MemberService {
         if (!passwordMatches(member, password))
             throw new GlobalException("400-2", "비밀번호가 일치하지 않습니다.");
 
-        String refreshToken = authTokenService.genRefreshToken(member);
+        String refreshToken = member.getRefreshToken();
         String accessToken = authTokenService.genAccessToken(member);
 
         return RsData.of(
@@ -83,5 +90,15 @@ public class MemberService {
 
                 authorities.stream().map(SimpleGrantedAuthority::new).toList()
         );
+    }
+
+    public RsData<String> refreshAccessToken(String refreshToken) {
+        Member member = memberRepository.findByRefreshToken(refreshToken).orElseThrow(
+                () -> new GlobalException("400-1","존재하지 않는 리프레시 토큰입니다.")
+        );
+
+        String accessToken = authTokenService.genAccessToken(member);
+
+        return RsData.of("200-1","토큰 갱신 성공", accessToken);
     }
 }
