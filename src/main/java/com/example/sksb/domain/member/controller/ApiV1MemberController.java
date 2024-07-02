@@ -4,12 +4,10 @@ import com.example.sksb.domain.article.entity.Article;
 import com.example.sksb.domain.member.entity.Member;
 import com.example.sksb.domain.member.service.MemberService;
 import com.example.sksb.global.exceptions.GlobalException;
+import com.example.sksb.global.rsData.RsData;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -22,33 +20,37 @@ import java.util.SimpleTimeZone;
 public class ApiV1MemberController {
     private final MemberService memberService;
 
+    @AllArgsConstructor
     @Getter
     public static class LoginResponseBody {
-        private String username;
-
-        public LoginResponseBody(String username) {
-            this.username = username;
-        }
+        @NotBlank
+        private String refreshToken;
+        @NotBlank
+        private String accessToken;
     }
 
     @Getter
     @Setter
-    public static class LoginRequestBody
-    {
+    public static class LoginRequestBody {
         @NotBlank
         private String username;
         @NotBlank
         private String password;
-
     }
 
     @PostMapping("/login")
-    public LoginResponseBody login(@Valid @RequestBody LoginRequestBody body)  {
-        Member member = memberService.findByUsername(body.getUsername())
-                .orElseThrow(() ->new GlobalException("400-1","해당 유저가 존재하지 않습니다."));
-        if (memberService.passwordMatches(member, body.getPassword()) == false) {
-            throw new GlobalException("400-2", "비밀번호가 일치하지 않습니다.");
-        }
-        return new LoginResponseBody(member.getUsername());
+    public RsData<LoginResponseBody> login(
+            @Valid @RequestBody LoginRequestBody body
+    ) {
+        RsData<MemberService.AuthAndMakeTokensResponseBody> authAndMakeTokensRs = memberService.authAndMakeTokens(body.getUsername(), body.getPassword());
+
+        return RsData.of(
+                authAndMakeTokensRs.getResultCode(),
+                authAndMakeTokensRs.getMsg(),
+                new LoginResponseBody(
+                        authAndMakeTokensRs.getData().getRefreshToken(),
+                        authAndMakeTokensRs.getData().getAccessToken()
+                )
+        );
     }
 }
