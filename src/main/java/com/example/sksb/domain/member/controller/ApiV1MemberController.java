@@ -1,6 +1,7 @@
 package com.example.sksb.domain.member.controller;
 
 import com.example.sksb.domain.article.entity.Article;
+import com.example.sksb.domain.member.dto.MemberDto;
 import com.example.sksb.domain.member.entity.Member;
 import com.example.sksb.domain.member.service.MemberService;
 import com.example.sksb.global.exceptions.GlobalException;
@@ -25,10 +26,7 @@ public class ApiV1MemberController {
     @AllArgsConstructor
     @Getter
     public static class LoginResponseBody {
-        @NotBlank
-        private String refreshToken;
-        @NotBlank
-        private String accessToken;
+       private MemberDto item;
     }
 
     @Getter
@@ -53,8 +51,9 @@ public class ApiV1MemberController {
                 authAndMakeTokensRs.getResultCode(),
                 authAndMakeTokensRs.getMsg(),
                 new LoginResponseBody(
-                        authAndMakeTokensRs.getData().getRefreshToken(),
-                        authAndMakeTokensRs.getData().getAccessToken()
+                        new MemberDto(
+                                authAndMakeTokensRs.getData().getMember()
+                        )
                 )
         );
     }
